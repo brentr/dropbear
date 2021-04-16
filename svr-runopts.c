@@ -101,6 +101,7 @@ static void printhelp(const char * progname) {
 	"-W <receive_window_buffer> (default %d, larger may be faster, max 1MB)\n"
 	"-S{idletime}   TCP Socket keepalive {optional TCP_KEEPIDLE must follow directly}\n"
 	"-K <keepalive> SSH channel keepalives (0 is never, default %d)\n"
+	"-M <alive_limit> Max # of unanswered keepalives allowed (default %d)\n"
 	"-I <idle_timeout>  (0 is never, default %d, in seconds)\n"
 	"-V	Version\n"
 #if DEBUG_TRACE
@@ -117,8 +118,8 @@ static void printhelp(const char * progname) {
 	ECDSA_PRIV_FILENAME,
 #endif
 	MAX_AUTH_TRIES,
-	DROPBEAR_MAX_PORTS, DROPBEAR_DEFPORT, DROPBEAR_PIDFILE,
-	DEFAULT_RECV_WINDOW, DEFAULT_KEEPALIVE, DEFAULT_IDLE_TIMEOUT);
+	DROPBEAR_MAX_PORTS, DROPBEAR_DEFPORT, DROPBEAR_PIDFILE, DEFAULT_RECV_WINDOW,
+	DEFAULT_KEEPALIVE, DEFAULT_KEEPALIVE_LIMIT, DEFAULT_IDLE_TIMEOUT);
 }
 
 void svr_getopts(int argc, char ** argv) {
@@ -128,6 +129,7 @@ void svr_getopts(int argc, char ** argv) {
 	int nextisport = 0;
 	char* recv_window_arg = NULL;
 	char* keepalive_arg = NULL;
+	char* alivelimit_arg = NULL;
 	char* idle_timeout_arg = NULL;
 	char* maxauthtries_arg = NULL;
 	char* keyfile = NULL;
@@ -175,6 +177,7 @@ void svr_getopts(int argc, char ** argv) {
 	opts.usingsyslog = 1;
 #endif
 	opts.recv_window = DEFAULT_RECV_WINDOW;
+	opts.keepalive_limit = DEFAULT_KEEPALIVE_LIMIT;
 	opts.keepalive_secs = DEFAULT_KEEPALIVE;
 	opts.idle_timeout_secs = DEFAULT_IDLE_TIMEOUT;
 	opts.tcp_keepalive = DEFAULT_TCP_ALIVE;
@@ -260,6 +263,9 @@ void svr_getopts(int argc, char ** argv) {
 					break;
 				case 'K':
 					next = &keepalive_arg;
+					break;
+				case 'M':
+					next = &alivelimit_arg;
 					break;
 				case 'S': //require optional idletime follow directly!
 					opts.tcp_keepalive = -1;
@@ -400,6 +406,14 @@ void svr_getopts(int argc, char ** argv) {
 			dropbear_exit("Bad keepalive '%s'", keepalive_arg);
 		}
 		opts.keepalive_secs = val;
+	}
+
+	if (alivelimit_arg) {
+		unsigned int val;
+		if (m_str_to_uint(alivelimit_arg, &val) == DROPBEAR_FAILURE) {
+			dropbear_exit("Bad keepalive limit '%s'", alivelimit_arg);
+		}
+		opts.keepalive_limit = val;
 	}
 
 	if (idle_timeout_arg) {

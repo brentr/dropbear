@@ -38,6 +38,7 @@ typedef struct runopts {
 	int listen_fwd_all;
 #endif
 	unsigned int recv_window;
+	unsigned keepalive_limit; /* max # of unanswered keepalives allowed */
 	time_t keepalive_secs; /* Time between sending keepalives. 0 is off */
 	time_t idle_timeout_secs; /* Exit if no traffic is sent/received in this time */
 	time_t tcp_keepalive;     /* TCP keepalive idle secs */

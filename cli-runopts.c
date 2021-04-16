@@ -85,6 +85,7 @@ static void printhelp() {
 	"-W <receive_window_buffer> (default %d, larger may be faster, max 1MB)\n"
 	"-S{idletime}   TCP Socket keepalive {optional TCP_KEEPIDLE must follow directly}\n"
 	"-K <keepalive> SSH channel keepalives (0 is never, default %d)\n"
+	"-M <alive_limit> Max # of unanswered keepalives allowed (default %d)\n"
 	"-I <idle_timeout>  (0 is never, default %d)\n"
 #if DROPBEAR_CLI_NETCAT
 	"-B <endhost:endport> Netcat-alike forwarding\n"
@@ -105,7 +106,8 @@ static void printhelp() {
 #if DROPBEAR_CLI_PUBKEY_AUTH
 	DROPBEAR_DEFAULT_CLI_AUTHKEY,
 #endif
-	DEFAULT_RECV_WINDOW, DEFAULT_KEEPALIVE, DEFAULT_IDLE_TIMEOUT);
+	DEFAULT_RECV_WINDOW,
+	DEFAULT_KEEPALIVE, DEFAULT_KEEPALIVE_LIMIT, DEFAULT_IDLE_TIMEOUT);
 }
 
 void cli_getopts(int argc, char ** argv) {
@@ -132,6 +134,7 @@ void cli_getopts(int argc, char ** argv) {
 
 	char* recv_window_arg = NULL;
 	char* keepalive_arg = NULL;
+	char* alivelimit_arg = NULL;
 	char* idle_timeout_arg = NULL;
 	char *host_arg = NULL;
 	char *bind_arg = NULL;
@@ -187,6 +190,7 @@ void cli_getopts(int argc, char ** argv) {
 	opts.ipv6 = 1;
 	*/
 	opts.recv_window = DEFAULT_RECV_WINDOW;
+	opts.keepalive_limit = DEFAULT_KEEPALIVE_LIMIT;
 	opts.keepalive_secs = DEFAULT_KEEPALIVE;
 	opts.idle_timeout_secs = DEFAULT_IDLE_TIMEOUT;
 	opts.tcp_keepalive = DEFAULT_TCP_ALIVE;
@@ -289,6 +293,9 @@ void cli_getopts(int argc, char ** argv) {
 					break;
 				case 'K':
 					next = &keepalive_arg;
+					break;
+				case 'M':
+					next = &alivelimit_arg;
 					break;
 				case 'S': //require optional idletime follow directly!
 					opts.tcp_keepalive = -1;
@@ -485,6 +492,14 @@ void cli_getopts(int argc, char ** argv) {
 			dropbear_exit("Bad keepalive '%s'", keepalive_arg);
 		}
 		opts.keepalive_secs = val;
+	}
+
+	if (alivelimit_arg) {
+		unsigned int val;
+		if (m_str_to_uint(alivelimit_arg, &val) == DROPBEAR_FAILURE) {
+			dropbear_exit("Bad keepalive limit '%s'", alivelimit_arg);
+		}
+		opts.keepalive_limit = val;
 	}
 
 	if (idle_timeout_arg) {

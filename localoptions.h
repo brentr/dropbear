@@ -2,9 +2,9 @@
 #define DROPBEAR_LOCALOPTIONS_H_
 /*
   Local options override those in default_options.h for ESP Linux
-  revised 5/29/20 by Brent Roman, brent@mbari.org
+  revised 4/15/21 by Brent Roman, brent@mbari.org
 */
-#define DROPBEAR_VERSION "2019.78-mbari3"
+#define DROPBEAR_VERSION "2019.78-mbari4"
 
 //verbose debugging
 #define DEBUG_TRACE 1

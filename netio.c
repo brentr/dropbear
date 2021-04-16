@@ -347,7 +347,7 @@ void set_sock_nodelay(int sock) {
 	if (keepidle) {
 		if (keepidle < 0 && opts.keepalive_secs) {
 		 //start probing only after ssh keep alives should have terminated session
-			keepidle = opts.keepalive_secs * DEFAULT_KEEPALIVE_LIMIT;
+			keepidle = opts.keepalive_secs * opts.keepalive_limit;
 		}
 		if (keepidle > 0 &&
 			 setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE,
